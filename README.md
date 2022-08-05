@@ -24,11 +24,11 @@ C:/Users/(yourname)/.julia/packages/JLD2manager/(something)/src/
 
 4. Just double-click jld2 file to open.
 
-![Honeycam 2022-08-06 02-59-09.gif](Honeycam 2022-08-06 02-59-09.gif#center)
+![1.gif](1.gif#center)
 
 5. Chek your jld2 file.
 
-![Honeycam 2022-08-06 03-00-53.gif](Honeycam 2022-08-06 03-00-53.gif#center)
+![2.gif](2.gif#center)
 
 ## Future Work
 
