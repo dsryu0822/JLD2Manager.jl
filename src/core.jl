@@ -24,8 +24,10 @@ Available Commands:
 * doc             Show Advanced feature
   exit            Stop this program
   ls              Show list of reading file
-* n               Go to next `*.jld2` file
-* p               Go to previous `*.jld2` file
+  r idx			  Read the 'idx'th data
+  r name		  Read the data with 'name'
+  n               Go to next `*.jld2` file
+  p               Go to previous `*.jld2` file
   ?               Help about any command
 
  * means now developing  
@@ -52,58 +54,84 @@ function show_ls(jld2file)
 	end
 end
 
-function read(directory, filename, jld2list)
-    jldopen(joinpath(directory, filename)) do jld2file
-		filekeys = keys(jld2file)
-		input = ""
+function show_(data)
+    show(IOContext(stdout, :limit => true), "text/plain", data)
+    println()
+end
 
-		# for (idx, key) in enumerate(filekeys)
-		# 	if idx != maximum(idx)
-		# 		println("├─ " * lpad(idx, idxl) *" "* lpad(key, keyl))
-		# 	else
-		# 		println("└─ " * lpad(idx, idxl) *" "* lpad(key, keyl))
-		# 	end
-		# end
-    
+function CLI(filekeys)
+    input = readline()
+    if isempty(input)
+        input = ""
+    elseif input ∈ filekeys
+        input = "r " * input
+    elseif prod(isdigit.([a for a in input]))
+        input = "r " * input
+    end
+    CL = split(strip(input), " ")[.!isempty.(split(strip(input), " "))]
+    push!(CL, "")
+    push!(CL, "")
+    return CL
+end
+
+function print_oneline(command)
+    if command == "welcome"
+        println("jld2 file opened")
+    elseif command == "h"
+        println(help_message)
+    elseif command == "pwd"
+        println(pwd())
+    end
+end
+
+function print_mode(mode)
+    if mode == :JLD2
+        println(Crayon(reset=true), "")
+        print(Crayon(foreground = (194,94,95)), "JLD2>")
+        print(Crayon(reset=true), " ")
+    end
+end
+
+function get_(jld2file, object, filekeys)
+    if prod(isdigit.([a for a in object]))
+        return jld2file[filekeys[parse(Int, object)]]
+    elseif object ∈ filekeys
+        return jld2file[object]
+    end
+end
+
+# function export(data, filename)
+#     if isa(data, Matrix)
+#         CSV.write("$filename.$ob")
+# end
+
+function read(filename, jld2list)
+    jldopen(filename) do jld2file
+		filekeys = keys(jld2file)
+		command = "welcome"
+		object = ""
+
 		page = 0
-		while input != "exit"
+		while command != "exit"
 			page += 1
-			if input in ["", "h", "q", "pwd"]
-				if input == ""
-					println("page: $page")
-				elseif input == "h"
-					println(help_message)
-				elseif input == "q"
-					break
-				elseif input == "pwd"
-					println(directory)
-				end
-			elseif input ∈ ["ls"]
+			if command in ["welcome", "h", "pwd"]
+                print_oneline(command)
+			elseif command == "ls"
 				show_ls(jld2file)
-			elseif prod(isdigit.([a for a in input]))
-				idx = parse(Int, input)
-				data = jld2file[filekeys[idx]]
-				show(IOContext(stdout, :limit => true), "text/plain", data)
-			elseif input ∈ filekeys
-				data = jld2file[input]
-				show(IOContext(stdout, :limit => true), "text/plain", data)
-			elseif input == "."
-				for key in filekeys
-					data = jld2file[key]
-					print(Crayon(foreground = (194,94,95)), key)
-					println(Crayon(reset=true), "")
-					show(IOContext(stdout, :limit => true), "text/plain", data)
-				end
-			elseif input in ["n", "p"]
-				newfileidx = mod(findfirst(filename .== jld2list) + ifelse(input == "p", -1, 1) - 1, length(jld2list)) + 1
+			elseif command == "r"
+                data = get_(jld2file, object, filekeys)
+                show_(data)
+            elseif command == "csv"
+                data = get_(jld2file, object, filekeys)
+                # export(data)
+			elseif command in ["n", "p"]
+				newfileidx = mod(findfirst(filename .== jld2list) + ifelse(command == "p", -1, 1) - 1, length(jld2list)) + 1
 				return jld2list[newfileidx]
 			else
 				println("page: $page")
 			end
-			println("   (h / ls / q)\n")
-			print(Crayon(foreground = (194,94,95)), "JLD2>")
-			print(Crayon(reset=true), " ")
-			input = readline()
+            print_mode(:JLD2)
+            command, object = CLI(filekeys)
 		end
 	end
 end

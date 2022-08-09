@@ -1,5 +1,6 @@
 module JLD2Manager
 
-println("🎈 JLD2Manager installed!")
+print("JLD2Manager.bat is in")
+println(@__DIR__)
 
 end # module
