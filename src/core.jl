@@ -1,14 +1,12 @@
 help_message = """
 Usage:
   idx             Show the 'idx'th data
-*                   also 'idx1:idx2' works
   name            Show the data with 'name'
-*                   also 'names1:names2' works
-  [command]       
+  [command]       Excute command line
   .               Show all data
 
 Available Aliasis:
-* csv dat         `export data -csv`
+  csv dat         `export data -csv`
 * e data          `export data -auto`
 
 Available Commands:
@@ -21,13 +19,12 @@ Available Commands:
                     -scatter: availalbe for `Matrix`
        data1 data2  -scatter: availalbe for two `Vector{Number}`
 
-* doc             Show Advanced feature
-  exit            Stop this program
   ls              Show list of reading file
   r idx			  Read the 'idx'th data
   r name		  Read the data with 'name'
   n               Go to next `*.jld2` file
   p               Go to previous `*.jld2` file
+  cd fileidx      Go to `fileidx`th `*.jld2` file
   ?               Help about any command
 
  * means now developing  
@@ -54,7 +51,7 @@ function show_ls(jld2file)
 	end
 end
 
-function show_(data)
+function show_data(data)
     show(IOContext(stdout, :limit => true), "text/plain", data)
     println()
 end
@@ -66,10 +63,23 @@ function CLI(filekeys)
     elseif input ∈ filekeys
         input = "r " * input
     elseif prod(isdigit.([a for a in input]))
-        input = "r " * input
+        id_object = parse(Int, input)
+        if 1 ≤ id_object ≤ length(filekeys)
+            input = "r " * filekeys[id_object]
+        else
+            input = ""
+        end
     end
     CL = split(strip(input), " ")[.!isempty.(split(strip(input), " "))]
     push!(CL, "")
+    if first(CL) == "csv"
+        id_object = parse(Int, CL[2])
+        if 1 ≤ id_object ≤ length(filekeys)
+            CL[2] = filekeys[id_object]
+        else
+            CL = [""]
+        end
+    end
     push!(CL, "")
     return CL
 end
@@ -92,20 +102,27 @@ function print_mode(mode)
     end
 end
 
-function get_(jld2file, object, filekeys)
-    if prod(isdigit.([a for a in object]))
-        return jld2file[filekeys[parse(Int, object)]]
-    elseif object ∈ filekeys
-        return jld2file[object]
+function export_csv(data, filename, object)
+    if isa(data, DataFrame)
+        CSV.write("$filename.$object.csv", data)
+    elseif isa(data, Matrix)
+        _, colsize = size(data)
+        open("$filename.$object.csv", "w") do csvfile
+            for i in eachrow(data)
+                for (lastcheck, j) in enumerate(i)
+                    print(csvfile, j)
+                    colsize != lastcheck ? print(csvfile, ",") : println(csvfile, "")
+                end
+            end
+        end
+    elseif isa(data, Vector)
+        open("$filename.$object.csv", "w") do csvfile
+            for element in data println(csvfile, element) end
+        end
     end
 end
 
-# function export(data, filename)
-#     if isa(data, Matrix)
-#         CSV.write("$filename.$ob")
-# end
-
-function read(filename, jld2list)
+function monitor(filename, jld2list)
     jldopen(filename) do jld2file
 		filekeys = keys(jld2file)
 		command = "welcome"
@@ -119,14 +136,15 @@ function read(filename, jld2list)
 			elseif command == "ls"
 				show_ls(jld2file)
 			elseif command == "r"
-                data = get_(jld2file, object, filekeys)
-                show_(data)
+                show_data(jld2file[object])
             elseif command == "csv"
-                data = get_(jld2file, object, filekeys)
-                # export(data)
+                data = jld2file[object]
+                export_csv(data, filename, object)
 			elseif command in ["n", "p"]
 				newfileidx = mod(findfirst(filename .== jld2list) + ifelse(command == "p", -1, 1) - 1, length(jld2list)) + 1
 				return jld2list[newfileidx]
+            elseif command == "cd"
+                return jld2list[parse(Int, object)]
 			else
 				println("page: $page")
 			end
