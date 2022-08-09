@@ -1,7 +1,7 @@
 name = "JLD2Manager"
 uuid = "81380758-35f1-456b-ad34-99baebce6e41"
 authors = ["DaeSick <rmsmsgood@naver.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"

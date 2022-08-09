@@ -131,7 +131,7 @@ function monitor(filename, jld2list)
 		page = 0
 		while command != "exit"
 			page += 1
-			if command in ["welcome", "h", "pwd"]
+			if command in ["welcome", "h", "pwd", "clc"]
                 print_oneline(command)
 			elseif command == "ls"
 				show_ls(jld2file)
@@ -144,7 +144,7 @@ function monitor(filename, jld2list)
 				newfileidx = mod(findfirst(filename .== jld2list) + ifelse(command == "p", -1, 1) - 1, length(jld2list)) + 1
 				return jld2list[newfileidx]
             elseif command == "cd"
-                return jld2list[parse(Int, object)]
+                return jld2list[mod(parse(Int, object) - 1,length(jld2list)) + 1]
 			else
 				println("page: $page")
 			end
