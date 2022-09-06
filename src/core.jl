@@ -33,8 +33,8 @@ Available Commands:
 # clipboard()
 
 function show_ls(jld2file)
-	idxl = jld2file |> keys |> length |> log10 |> ceil |> Int
-	keyl = jld2file |> keys .|> length |> maximum
+	idxl = (jld2file |> keys |> length |> log10 |> ceil |> Int) + 1
+	keyl = (jld2file |> keys .|> length |> maximum)
 	filekeys = keys(jld2file)
 	# textwidth
 	println((" "^idxl) *" "* lpad("key", keyl) * lpad("size", 16) * lpad("type", 16) * lpad("preview", 16))
