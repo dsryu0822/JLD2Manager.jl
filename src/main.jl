@@ -10,9 +10,9 @@ push!(trajectory, basename(ARGS[1]))
 while true
     filename = last(trajectory)
     jld2list = readdir()[(last.(split.(readdir(), '.')) .== "jld2")]
-    if length(jld2list) < 10
-        display(jld2list)
-    else        
+    # if length(jld2list) < 10
+    #     display(jld2list)
+    # else
         for cursor in jld2list
             if cursor == filename
                 print(Crayon(foreground = (244,191,119)), "$cursor, ")
@@ -22,7 +22,7 @@ while true
                 print(Crayon(foreground = (64,64,64)), "$cursor, ")
             end
         end
-    end
+    # end
 
     fileidx = findfirst(filename .== jld2list)
     println(Crayon(reset = true), "    [ $fileidx / $(length(jld2list)) ]")
